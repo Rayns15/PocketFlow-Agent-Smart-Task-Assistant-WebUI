@@ -12,8 +12,7 @@ The **Smart Task Assistant** is a high-performance productivity dashboard that l
 * 
 **PocketFlow Architecture**: Built using a node-based graph logic for robust state management.
 
-
-
+![Smart Webui](https://github.com/Rayns15/PocketFlow-Agent-Smart-Task-Assistant-WebUI/blob/5b6c570685879c2f0fe58aec701677f3427a8c05/__pycache__/Smart%20Task%20Assistant.jpg)
 ---
 
 ## 🛠️ Tech Stack
