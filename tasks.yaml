@@ -1,0 +1,77 @@
+- task: interview2
+  priority: LOW_PRIORITY
+  time: astazi la ora 16:39
+  full_yaml:
+    intent: process_and_breakdown_task
+    entities:
+      task_name: interview2
+    priority: low_priority
+    micro_steps:
+      step: Research the company and its products/services
+      estimated_minutes: 20
+    suggested_schedule: astazi la ora 16:39
+    actions:
+    - save_to_memory('interview2')
+  status: IN PROGRESS
+- task: Emanuel
+  description: Emanuel Panait
+  priority: LOW_PRIORITY
+  time: 29.02.2026
+  status: IN PROGRESS
+  full_yaml:
+    intent: process_and_breakdown_task
+    entities:
+      task_name: Emanuel
+    priority: high_priority
+    micro_steps:
+      step: Contact Emanuel Panait
+      estimated_minutes: 10
+    suggested_schedule: 29.02.2026
+    actions:
+    - save_to_memory('Emanuel')
+- task: CEO
+  priority: HIGH_PRIORITY
+  time: '2026-03-04 16:45:00'
+  full_yaml:
+    intent: process_and_breakdown_task
+    entities:
+      task_name: CEO
+    priority: high_priority
+    micro_steps:
+      step: Schedule a meeting with the marketing team to discuss the new campaign.
+      estimated_minutes: 15
+    suggested_schedule: '2026-02-27 16:44:00'
+    actions:
+    - save_to_memory('CEO')
+  description: ''
+- task: Interview
+  priority: LOW_PRIORITY
+  time: '2026-02-28 00:00:00'
+  full_yaml:
+    intent: process_and_breakdown_task
+    entities:
+      task_name: Interview
+    priority: low_priority
+    micro_steps:
+      step: Prepare questions for the interview
+      estimated_minutes: 15
+    suggested_schedule: '2026-02-28 00:00:00'
+    actions:
+    - save_to_memory('Interview')
+  status: COMPLETE
+- task: Admin
+  description: treburi despre management si IT
+  priority: HIGH_PRIORITY
+  time: '2026-03-04 12:37:00'
+  status: READY
+  full_yaml:
+    intent: process_and_breakdown_task
+    entities:
+      task_name: Admin
+    priority: low_priority
+    micro_steps:
+      step: Create a new IT infrastructure management system
+      estimated_minutes: 30
+    suggested_schedule: 29.02.2026
+    actions:
+    - save_to_memory('Admin')

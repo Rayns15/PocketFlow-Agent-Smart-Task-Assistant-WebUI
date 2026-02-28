@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Task Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .group-header-ready { color: #5655FA; border-color: #5655FA; background-color: #5655FA; }
+        .group-header-progress { color: #00a2ff; border-color: #00a2ff; background-color: #00a2ff; }
+        .group-header-complete { color: #00d084; border-color: #00d084; background-color: #00d084; }
+    </style>
+</head>
+<body class="h-screen flex bg-white font-sans text-gray-700 overflow-hidden text-sm">
+
+    <aside class="w-64 bg-[#f9f9f9] border-r border-gray-200 flex flex-col h-full hidden md:flex">
+        <div class="p-4 border-b border-gray-200 flex items-center gap-2">
+            <div class="w-6 h-6 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-md"></div>
+            <span class="font-bold text-gray-800 tracking-wide">Workspace</span>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto">
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Spaces</p>
+                <ul class="space-y-1">
+                    <li class="flex items-center gap-2 text-gray-600 hover:bg-gray-100 p-1.5 rounded cursor-pointer">
+                        <span>📦</span> Everything
+                    </li>
+                    <li class="mt-2">
+                        <div class="flex items-center gap-2 text-gray-800 font-medium p-1.5">
+                            <span class="text-green-500 font-bold">M</span> Management
+                        </div>
+                        <ul class="pl-6 space-y-1 mt-1 text-gray-500">
+                            <li class="hover:bg-gray-100 p-1.5 rounded cursor-pointer">Office Space Mgt</li>
+                            <li class="bg-blue-600 text-white p-1.5 rounded cursor-pointer shadow-sm flex justify-between items-center font-medium">
+                                Project Management <span class="text-xs opacity-70">•••</span>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
+        <header class="border-b border-gray-200 bg-white">
+            <div class="px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <h1 class="text-xl font-semibold text-gray-800">Project Management</h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="totalTime" class="text-xs font-semibold text-gray-400 uppercase tracking-wider border px-2 py-1 rounded">Load: 0h 0m</span>
+                    <button onclick="openModal()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                        + Task
+                    </button>
+                </div>
+            </div>
+            <div class="px-6 py-2 flex justify-between items-center text-xs text-gray-500 bg-gray-50/50">
+                <div class="flex items-center gap-3">
+                    <button id="filterCompletedBtn" onclick="toggleCompletedFilter()" class="bg-gray-200 text-gray-600 px-3 py-1 rounded-full cursor-pointer hover:bg-gray-300 transition font-medium">
+                        Hide Completed: OFF
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 bg-white" id="mainContainer">
+            <div class="grid grid-cols-12 gap-4 items-center px-4 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-4">
+                <div class="col-span-5 pl-8">Task Name</div>
+                <div class="col-span-2 text-center">Due Date</div>
+                <div class="col-span-1 text-center">Priority</div>
+                <div class="col-span-1 text-center">Time Est.</div>
+                <div class="col-span-2 text-center">Status</div>
+                <div class="col-span-1 text-center">Actions</div>
+            </div>
+            <div id="taskList" class="flex flex-col pb-20"></div>
+        </div>
+    </main>
+
+    <div id="taskModal" class="hidden fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-6 backdrop-blur-sm" onclick="closeModalOnBackdrop(event)">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-200" onclick="event.stopPropagation()">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 id="modalTitle" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    ✨ Create New Smart Task
+                </h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition text-2xl px-2 leading-none">×</button>
+            </div>
+            
+            <div class="p-6 space-y-5">
+                <div>
+                    <input type="text" id="taskName" placeholder="Task Name (e.g., Test)" class="text-xl font-medium text-gray-900 bg-white border border-gray-200 p-3 rounded-xl w-full focus:outline-none focus:border-blue-400">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Description</label>
+                    <textarea id="taskDescription" placeholder="Add subtasks, or a checklist, or just a description..." rows="5" class="bg-white border border-gray-200 p-4 rounded-xl w-full focus:outline-none focus:border-blue-400 text-sm leading-relaxed"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Due Date (Select Date & Time)</label>
+                        <input type="datetime-local" id="taskCalendar" class="bg-gray-50 border border-gray-200 p-2 rounded-lg w-full focus:outline-none focus:border-blue-400">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Priority</label>
+                        <select id="taskPriority" class="bg-gray-50 border border-gray-200 p-2 rounded-lg w-full focus:outline-none focus:border-blue-400">
+                            <option value="LOW_PRIORITY">Low Priority</option>
+                            <option value="HIGH_PRIORITY">High Priority</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-col md:flex-row justify-between gap-3">
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 font-medium px-4 py-2 order-2 md:order-1">Close</button>
+                <div class="flex gap-3 order-1 md:order-2">
+                    <button onclick="submitTask()" id="createBtn" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition font-medium whitespace-nowrap flex items-center gap-1.5 shadow-sm">
+                        ✨ Create & Analyze
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000/api/tasks";
+        let currentTasks = [];
+        let hideCompleted = false;
+        let draggedItemIndex = null;
+        let editingTaskIndex = null; // Track if we are editing
+
+        const modal = document.getElementById('taskModal');
+
+        // Handles Opening the Modal for BOTH New Tasks and Editing
+        function openModal(editIndex = null) {
+            editingTaskIndex = editIndex;
+            const titleEl = document.getElementById('modalTitle');
+            const btnEl = document.getElementById('createBtn');
+
+            if (editIndex !== null) {
+                // We are EDITING an existing task
+                const task = currentTasks[editIndex];
+                titleEl.innerText = "✏️ Edit Task Details";
+                btnEl.innerText = "💾 Save Changes";
+                
+                document.getElementById('taskName').value = task.task;
+                document.getElementById('taskDescription').value = task.description || "";
+                document.getElementById('taskPriority').value = task.priority || "LOW_PRIORITY";
+                
+                // Format DB date to fit the HTML5 calendar input format (YYYY-MM-DDTHH:MM)
+                let calValue = "";
+                if (task.time && task.time.includes('-')) {
+                    calValue = task.time.replace(' ', 'T').substring(0, 16);
+                }
+                document.getElementById('taskCalendar').value = calValue;
+            } else {
+                // We are creating a NEW task
+                titleEl.innerText = "✨ Create New Smart Task";
+                btnEl.innerText = "✨ Create & Analyze";
+                document.getElementById('taskName').value = "";
+                document.getElementById('taskDescription').value = "";
+                document.getElementById('taskCalendar').value = "";
+                document.getElementById('taskPriority').value = "LOW_PRIORITY";
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            editingTaskIndex = null;
+        }
+        function closeModalOnBackdrop(e) {
+            if(e.target === modal) closeModal();
+        }
+
+        // Handles BOTH Creating and Updating Tasks
+        async function submitTask() {
+            const btn = document.getElementById('createBtn');
+            const task = document.getElementById('taskName').value;
+            const description = document.getElementById('taskDescription').value; 
+            const priority = document.getElementById('taskPriority').value;
+            const calendar = document.getElementById('taskCalendar').value;
+
+            if(!task) return alert("Task title is required!");
+
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            try {
+                let response;
+                if (editingTaskIndex !== null) {
+                    // Update existing task
+                    response = await fetch(`${API_URL}/${editingTaskIndex}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ task, description, priority, calendar }) 
+                    });
+                } else {
+                    // Create new task
+                    response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ task, description, priority, calendar }) 
+                    });
+                }
+                
+                // SAFETY CATCH: If the Python API rejects it, throw an error
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+                
+                closeModal(); 
+                fetchTasks();
+            } catch (err) {
+                console.error("Error saving task:", err);
+                alert("❌ Could not save the task! Did you restart the Python API?");
+            }
+            btn.disabled = false;
+        }
+
+        function toggleCompletedFilter() {
+            hideCompleted = !hideCompleted;
+            const btn = document.getElementById('filterCompletedBtn');
+            if (hideCompleted) {
+                btn.innerText = "Hide Completed: ON";
+                btn.className = "bg-blue-100 text-blue-700 px-3 py-1 rounded-full cursor-pointer hover:bg-blue-200 transition font-medium border border-blue-200";
+            } else {
+                btn.innerText = "Hide Completed: OFF";
+                btn.className = "bg-gray-200 text-gray-600 px-3 py-1 rounded-full cursor-pointer hover:bg-gray-300 transition font-medium";
+            }
+            renderTasks();
+        }
+
+        async function fetchTasks() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                currentTasks = data.tasks || [];
+                renderTasks();
+            } catch (error) {
+                console.error("Error fetching tasks:", error);
+                document.getElementById('taskList').innerHTML = "<div class='p-8 text-center text-red-400'>Cannot connect to API. Is Python running?</div>";
+            }
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = "";
+            let visibleMinutes = 0;
+
+            if(currentTasks.length === 0) {
+                list.innerHTML = "<div class='p-8 text-center text-gray-400'>No active tasks. Add one above!</div>";
+                document.getElementById('totalTime').innerText = `Load: 0h 0m`;
+                return;
+            }
+
+            const groups = {
+                "IN PROGRESS": { items: [], colorClass: "group-header-progress", label: "IN PROGRESS" },
+                "READY": { items: [], colorClass: "group-header-ready", label: "READY" },
+                "COMPLETE": { items: [], colorClass: "group-header-complete", label: "COMPLETE" }
+            };
+
+            currentTasks.forEach((task, originalIndex) => {
+                if (hideCompleted && task.status === "COMPLETE") return;
+                let status = task.status || "READY";
+                if (!groups[status]) status = "READY"; 
+                task._originalIndex = originalIndex;
+                groups[status].items.push(task);
+                visibleMinutes += task.calculated_minutes || 0;
+            });
+
+            const hours = Math.floor(visibleMinutes / 60);
+            const mins = visibleMinutes % 60;
+            document.getElementById('totalTime').innerText = `Load: ${hours}h ${mins}m`;
+
+            Object.keys(groups).forEach(statusKey => {
+                const group = groups[statusKey];
+                if (group.items.length === 0) return; 
+
+                list.innerHTML += `
+                    <div class="mt-6 mb-2 flex items-center gap-2 font-semibold cursor-pointer border-b border-gray-200 pb-2">
+                        <span class="text-xs ${group.colorClass} opacity-80">▼</span> 
+                        <span class="text-[10px] text-white px-2 py-0.5 rounded-sm uppercase tracking-wider ${group.colorClass}">
+                            ${group.label}
+                        </span>
+                        <span class="text-gray-400 text-xs ml-2 font-normal">${group.items.length} TASKS</span>
+                        <span class="text-gray-300 font-normal text-[10px] ml-4 hover:text-blue-500 transition" onclick="openModal()">+ NEW TASK</span>
+                    </div>
+                `;
+
+                group.items.forEach(task => {
+                    const originalIndex = task._originalIndex;
+                    const timeStr = task.time ? task.time.split(' ')[0] : "-";
+                    const isHigh = task.priority === "HIGH_PRIORITY";
+                    const flagIcon = isHigh ? '<span class="text-red-500 text-lg">🚩</span>' : '<span class="text-gray-300 text-lg">🏳️</span>';
+                    const timeFmt = (task.calculated_minutes && task.calculated_minutes > 0) ? `${task.calculated_minutes}h` : `-`;
+                    const btnClass = task.status === 'COMPLETE' ? 'bg-[#00d084]' : task.status === 'IN PROGRESS' ? 'bg-[#00a2ff]' : 'bg-[#5655FA]';
+
+                    let stepsHtml = "";
+                    let microSteps = task.full_yaml?.micro_steps || [];
+                    if (!Array.isArray(microSteps)) microSteps = [microSteps];
+                    if (microSteps.length > 0) {
+                        stepsHtml = `<ul class="list-disc pl-6 space-y-1 text-xs text-gray-500">`;
+                        microSteps.forEach(stepObj => {
+                            let stepText = typeof stepObj === 'string' ? stepObj : stepObj.step;
+                            if (stepText) stepsHtml += `<li>${stepText}</li>`;
+                        });
+                        stepsHtml += `</ul>`;
+                    }
+
+                    const descriptionHtml = task.description ? `<p class="text-sm text-gray-600 mb-3 leading-relaxed">${task.description}</p>` : "";
+
+                    list.innerHTML += `
+                        <div class="border-b border-gray-100 hover:bg-gray-50 transition group bg-white" 
+                             draggable="true" 
+                             ondragstart="handleDragStart(event, ${originalIndex})"
+                             ondragover="handleDragOver(event)"
+                             ondragenter="handleDragEnter(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="handleDrop(event, ${originalIndex})">
+                             
+                            <div class="grid grid-cols-12 gap-4 items-center px-4 py-3 cursor-pointer" onclick="toggleSteps(${originalIndex})">
+                                <div class="col-span-5 flex items-center gap-3">
+                                    <span class="text-gray-300 hover:text-gray-500 cursor-grab px-1 text-lg leading-none" title="Drag to reorder">⠿</span>
+                                    <span class="text-blue-500 text-xs bg-blue-50 w-5 h-5 flex items-center justify-center rounded transition hover:bg-blue-100">
+                                        <svg class="w-3 h-3 transform transition-transform" id="caret-${originalIndex}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </span>
+                                    <div class="w-1.5 h-1.5 rounded-sm bg-purple-500"></div>
+                                    <span class="font-medium text-gray-800 truncate">${task.task}</span>
+                                </div>
+                                <div class="col-span-2 text-center text-gray-500 text-xs">${timeStr}</div>
+                                <div class="col-span-1 text-center">${flagIcon}</div>
+                                <div class="col-span-1 text-center text-gray-400 text-xs font-mono">${timeFmt}</div>
+                                <div class="col-span-2 flex justify-center items-center">
+                                    <button onclick="event.stopPropagation(); cycleStatus(this, ${originalIndex})" class="${btnClass} text-white text-[10px] font-bold px-3 py-1.5 rounded uppercase tracking-wider w-24 hover:opacity-90 transition shadow-sm">
+                                        ${task.status || "READY"}
+                                    </button>
+                                </div>
+                                <div class="col-span-1 flex justify-center items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="event.stopPropagation(); openModal(${originalIndex})" class="text-gray-400 hover:text-blue-500 transition px-1 text-lg" title="Edit">✏️</button>
+                                    <button onclick="event.stopPropagation(); deleteTask(${originalIndex})" class="text-gray-400 hover:text-red-500 transition px-1 text-lg" title="Delete">🗑️</button>
+                                </div>
+                            </div>
+                            
+                            <div id="steps-${originalIndex}" class="hidden px-14 py-4 bg-gray-50/30 border-t border-dashed border-gray-200">
+                                ${descriptionHtml} <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block pt-2 border-t border-gray-100">AI Breakdown Steps</span>
+                                ${stepsHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        async function cycleStatus(btn, index) {
+            const current = btn.innerText.trim();
+            let newStatus = "READY";
+            if (current === "READY") newStatus = "IN PROGRESS";
+            else if (current === "IN PROGRESS") newStatus = "COMPLETE";
+            btn.innerText = "Saving...";
+            try {
+                await fetch(`${API_URL}/${index}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                fetchTasks();
+            } catch (error) {
+                console.error("Failed to update status", error);
+                btn.innerText = current;
+            }
+        }
+
+        function toggleSteps(index) {
+            const stepsDiv = document.getElementById(`steps-${index}`);
+            const caret = document.getElementById(`caret-${index}`);
+            if (stepsDiv.classList.contains('hidden')) {
+                stepsDiv.classList.remove('hidden');
+                caret.classList.add('rotate-180');
+            } else {
+                stepsDiv.classList.add('hidden');
+                caret.classList.remove('rotate-180');
+            }
+        }
+
+        async function deleteTask(index) {
+            if (confirm("⚠️ Delete this task permanently?")) {
+                await fetch(`${API_URL}/${index}`, { method: "DELETE" });
+                fetchTasks();
+            }
+        }
+
+        function handleDragStart(e, index) {
+            draggedItemIndex = index;
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => e.target.classList.add('opacity-40'), 0);
+        }
+        function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+        function handleDragEnter(e) {
+            e.preventDefault();
+            const row = e.target.closest('div[draggable="true"]');
+            if (row) row.classList.add('bg-blue-50', 'border-t-2', 'border-blue-400');
+        }
+        function handleDragLeave(e) {
+            const row = e.target.closest('div[draggable="true"]');
+            if (row) row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400');
+        }
+        async function handleDrop(e, targetIndex) {
+            e.preventDefault();
+            const row = e.target.closest('div[draggable="true"]');
+            if (row) row.classList.remove('bg-blue-50', 'border-t-2', 'border-blue-400', 'opacity-40');
+            if (draggedItemIndex === null || draggedItemIndex === targetIndex) return;
+            try {
+                await fetch(`${API_URL}/reorder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ old_index: draggedItemIndex, new_index: targetIndex })
+                });
+                fetchTasks();
+            } catch (error) { console.error("Failed to reorder tasks", error); }
+            draggedItemIndex = null;
+        }
+
+        fetchTasks();
+    </script>
+</body>
+</html>
